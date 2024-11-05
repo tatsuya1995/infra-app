@@ -1,5 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2'
+import * as ecr from 'aws-cdk-lib/aws-ecr'
+import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 import { Construct } from 'constructs';
 
 export class InfraAppStack extends cdk.Stack {
@@ -38,5 +40,16 @@ export class InfraAppStack extends cdk.Stack {
       cidrBlock: '10.0.20.0/24',
     });
     cdk.Tags.of(privateSubnet1a).add('Name', 'application-privateSubnet1a');
+
+    const ecrRepository = new ecr.Repository(this, 'ecr', {
+      repositoryName: "application-repo",
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // TODO: 設定確認
+      autoDeleteImages: true // TODO: 設定確認
+    });
+
+    // const dockerImageAsset = new DockerImageAsset(this, "DockerImageAsset", {
+    //   directory: path.join(__dirname, "..", "app"),
+    //   platform: Platform.LINUX_AMD64,
+    // });
   }
 }
