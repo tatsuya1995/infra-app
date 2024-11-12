@@ -41,12 +41,38 @@ export class InfraAppStack extends cdk.Stack {
     });
     cdk.Tags.of(privateSubnet1a).add('Name', 'application-privateSubnet1a');
 
-    const ecrRepository = new ecr.Repository(this, 'ecr', {
-      repositoryName: "application-repo",
+    const ecrBackendRepository = new ecr.Repository(this, 'ecrBackendRepository', {
+      repositoryName: "application-backend",
       removalPolicy: cdk.RemovalPolicy.DESTROY, // TODO: 設定確認
-      autoDeleteImages: true // TODO: 設定確認
     });
 
+    const ecrFrontEndRepository = new ecr.Repository(this, 'ecrFrontEndRepository', {
+      repositoryName: "application-frontend",
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // TODO: 設定確認
+    });
+
+    // ECR APIエンドポイントの作成
+    vpc.addInterfaceEndpoint('EcrApiEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR,
+      subnets: {
+        subnets: [privateSubnet1a],
+      },
+    });
+
+    // ECR Dockerエンドポイントの作成
+    vpc.addInterfaceEndpoint('EcrDockerEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
+      privateDnsEnabled: false,
+      subnets: {
+        subnets: [privateSubnet1a],
+      },
+    });
+
+    // S3ゲートウェイエンドポイントの作成
+    vpc.addGatewayEndpoint('S3Endpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.S3,
+      subnets: [{ subnets: [privateSubnet1a] }],
+    }) 
     // const dockerImageAsset = new DockerImageAsset(this, "DockerImageAsset", {
     //   directory: path.join(__dirname, "..", "app"),
     //   platform: Platform.LINUX_AMD64,
